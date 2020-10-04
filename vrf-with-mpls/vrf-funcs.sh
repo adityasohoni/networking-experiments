@@ -7,7 +7,7 @@
 
 # FIXME : setup correct path to supported iproute2
 
-IP=/path/to/correct/ip
+IP=ip
 
 #IP=../../iproute2/ip/ip
 
@@ -44,16 +44,16 @@ function _do_create_host
 
 	${IP} netns add ${custhost}
 
-	${IP} link add ${custhost}-eth type veth peer name ${custhost}-${custbr}-eth
+	# ${IP} link add ${custhost}-eth type veth peer name ${custhost}-${custbr}-eth
 
-	${IP} link set ${custhost}-${custbr}-eth master ${custbr}
-	${IP} link set ${custhost}-${custbr}-eth up
+	# ${IP} link set ${custhost}-${custbr}-eth master ${custbr}
+	# ${IP} link set ${custhost}-${custbr}-eth up
 
-	${IP} link set ${custhost}-eth netns ${custhost}
+	# ${IP} link set ${custhost}-eth netns ${custhost}
 
-	${IP} netns exec ${custhost} ${IP} link set lo up
-	${IP} netns exec ${custhost} ${IP} link set ${custhost}-eth up
-	${IP} netns exec ${custhost} ${IP} addr add 88.${edge}.1.${host}/24 dev ${custhost}-eth
+	# ${IP} netns exec ${custhost} ${IP} link set lo up
+	# ${IP} netns exec ${custhost} ${IP} link set ${custhost}-eth up
+	# ${IP} netns exec ${custhost} ${IP} addr add 88.${edge}.1.${host}/24 dev ${custhost}-eth
 
 }
 
@@ -96,19 +96,56 @@ function create_ce_routers
 		for edge in `seq 1 2`; do
 			custedge=c${cust}e${edge}
 			custbr=br${cust}${edge}
+			custhost=c${cust}h${edge}
 
 			${IP} netns add ${custedge}
+			ip netns add ${custhost}
 
-			${IP} link add ${custedge}-eth type veth peer name ${custedge}-${custbr}-eth
-
-			${IP} link set ${custedge}-${custbr}-eth master ${custbr}
-			${IP} link set ${custedge}-${custbr}-eth up
-
+			ip link add ${custedge}-eth type veth peer name ${custhost}-eth
+			
+			${IP} link set ${custhost}-eth netns ${custhost}
 			${IP} link set ${custedge}-eth netns ${custedge}
+
+			${IP} netns exec ${custhost} ${IP} link set lo up
+			${IP} netns exec ${custhost} ${IP} link set ${custhost}-eth up
+			${IP} netns exec ${custhost} ${IP} addr add 88.${edge}.1.1/24 dev ${custhost}-eth
 
 			${IP} netns exec ${custedge} ${IP} link set lo up
 			${IP} netns exec ${custedge} ${IP} link set ${custedge}-eth up
 			${IP} netns exec ${custedge} ${IP} addr add 88.${edge}.1.254/24 dev ${custedge}-eth
+
+
+			${IP} netns exec ${custhost} ${IP} route add default via 88.${edge}.1.254 dev ${custhost}-eth
+
+
+
+			# ip link add veth-c1h1 type veth peer name veth-c1e1
+
+			# ip link set veth-c1h1 netns c1h1
+			# ip link set veth-c1e1 netns c1e1
+
+			# ip netns exec c1h1 ip link set lo up
+			# ip netns exec c1e1 ip link set lo up
+
+			# ip netns exec c1h1 ip link set veth-c1h1 up
+			# ip netns exec c1e1 ip link set veth-c1e1 up
+
+			# ip netns exec c1h1 ip address add 88.1.1.1/24 dev veth-c1h1
+			# ip netns exec c1e1 ip address add 88.1.1.6/24 dev veth-c1e1
+
+
+
+
+			# ${IP} link add ${custedge}-eth type veth peer name ${custedge}-${custbr}-eth
+
+			# ${IP} link set ${custedge}-${custbr}-eth master ${custbr}
+			# ${IP} link set ${custedge}-${custbr}-eth up
+
+			# ${IP} link set ${custedge}-eth netns ${custedge}
+
+			# ${IP} netns exec ${custedge} ${IP} link set lo up
+			# ${IP} netns exec ${custedge} ${IP} link set ${custedge}-eth up
+			# ${IP} netns exec ${custedge} ${IP} addr add 88.${edge}.1.254/24 dev ${custedge}-eth
 		done
 	done
 }
@@ -246,29 +283,73 @@ function setup_mpls
 function setup_routing
 {
 	# first at each of the hosts
-	for cust in `seq 1 2`; do
-		for host in `seq 1 2`; do
-			custhost=c${cust}h${host}
-			${IP} netns exec ${custhost} ${IP} route add default via 88.1.1.254 dev ${custhost}-eth
-		done
-	done
+	# for cust in `seq 1 2`; do
+	# 	for host in `seq 1 2`; do
+	# 		custhost=c${cust}h${host}
+	# 		${IP} netns exec ${custhost} ${IP} route add default via 88.1.1.254 dev ${custhost}-eth
+	# 	done
+	# done
 
-	for cust in `seq 1 2`; do
-		for host in `seq 3 4`; do
-			custhost=c${cust}h${host}
-			${IP} netns exec ${custhost} ${IP} route add default via 88.2.1.254 dev ${custhost}-eth
-		done
-	done
+	# for cust in `seq 1 2`; do
+	# 	for host in `seq 3 4`; do
+	# 		custhost=c${cust}h${host}
+	# 		${IP} netns exec ${custhost} ${IP} route add default via 88.2.1.254 dev ${custhost}-eth
+	# 	done
+	# done
 
 	# setup at ce routers
+	
+
+
+	# ip link add veth-c1h1 type veth peer name veth-c1e1
+
+	# ip link set veth-c1h1 netns c1h1
+	# ip link set veth-c1e1 netns c1e1
+
+	# ip netns exec c1h1 ip link set lo up
+	# ip netns exec c1e1 ip link set lo up
+
+	# ip netns exec c1h1 ip link set veth-c1h1 up
+	# ip netns exec c1e1 ip link set veth-c1e1 up
+
+	# ip netns exec c1h1 ip address add 88.1.1.1/24 dev veth-c1h1
+	# ip netns exec c1e1 ip address add 88.1.1.6/24 dev veth-c1e1
+
+
 	${IP} netns exec c1e1 sysctl -w net.ipv4.ip_forward=1
 	${IP} netns exec c1e1 ${IP} route add default via 1.1.1.2 dev c1e1-pe1-eth
+	#${IP} netns exec c1e1 ${IP} route add 88.2.1.3 #dev c1e1-pe1-eth
+	#${IP} netns exec c1e1 ${IP} route add 88.1.1.1 #dev c1e1-eth
 
 	${IP} netns exec c2e1 sysctl -w net.ipv4.ip_forward=1
 	${IP} netns exec c2e1 ${IP} route add default via 1.1.1.2 dev c2e1-pe1-eth
 
+	
+
+
+
+
+	# ip link add veth-c1h3 type veth peer name veth-c1e2
+
+	# ip link set veth-c1h3 netns c1h3
+	# ip link set veth-c1e2 netns c1e2
+
+	# ip netns exec c1h3 ip link set lo up
+	# ip netns exec c1e2 ip link set lo up
+
+	# ip netns exec c1h3 ip link set veth-c1h3 up
+	# ip netns exec c1e2 ip link set veth-c1e2 up
+
+	# ip netns exec c1h3 ip address add 88.2.1.3/24 dev veth-c1h3
+	# ip netns exec c1e2 ip address add 10.0.1.2/24 dev veth-c1e2
+
+
+
+
 	${IP} netns exec c1e2 sysctl -w net.ipv4.ip_forward=1
 	${IP} netns exec c1e2 ${IP} route add default via 3.1.1.1 dev c1e2-pe2-eth
+	#${IP} netns exec c1e2 ${IP} route add 88.1.1.1 #dev c1e2-pe2-eth
+	#${IP} netns exec c1e2 ${IP} route add 88.2.1.3 #dev c1e2-eth
 
 	${IP} netns exec c2e2 sysctl -w net.ipv4.ip_forward=1
 	${IP} netns exec c2e2 ${IP} route add default via 3.1.1.1 dev c2e2-pe2-eth

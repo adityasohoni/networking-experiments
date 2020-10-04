@@ -9,7 +9,7 @@ function cleanup
 	delete_pe_routers
 	delete_ce_routers
 	delete_hosts
-	delete_bridges
+	#delete_bridges
 }
 
 cleanup
