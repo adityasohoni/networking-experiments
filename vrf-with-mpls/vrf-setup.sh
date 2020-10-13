@@ -17,3 +17,4 @@ function setup
 }
 
 setup
+ip netns e c1h1 ping 192.2.1.1
