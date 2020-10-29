@@ -13,7 +13,9 @@ Here a bunch of shell scripts, that run some experiments on Linux kernel.
 
 # Bandwidth Issues
 https://docs.google.com/drawings/d/1K2RyOgtIZNjxbYtAmKeJgK5jXtc4MtxFSidyiJgfQpA/edit?usp=sharing
-This is the Link to the diagram of the setup
+
+This is the Link to the diagram of the setup.
+
 You have to run the vrf-setup.sh and this pings c1h2 from c1h1.(See diagram)
 
 bash vrf-setup.sh
